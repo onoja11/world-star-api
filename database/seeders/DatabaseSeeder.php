@@ -43,32 +43,32 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'clothes',
         // ]);
 
-        Product::create([
-            'name' => 'super model',
-            'description' => 'Latest model super with advanced features.',
-            'price' => 699.99,
-            'stock' => 50,
-            'image' => 'https://plus.unsplash.com/premium_photo-1667520043080-53dcca77e2aa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2xvdGhpbmclMjBicmFuZHN8ZW58MHx8MHx8fDA%3D',
-            'category_id' => 1, // Assuming the first category is Electronics
-        ]);
+        // Product::create([
+        //     'name' => 'super model',
+        //     'description' => 'Latest model super with advanced features.',
+        //     'price' => 699.99,
+        //     'stock' => 50,
+        //     'image' => 'https://plus.unsplash.com/premium_photo-1667520043080-53dcca77e2aa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2xvdGhpbmclMjBicmFuZHN8ZW58MHx8MHx8fDA%3D',
+        //     'category_id' => 1, // Assuming the first category is Electronics
+        // ]);
 
-        Order::create([
-            'user_id' => 1, // Assuming the first user is Test User
-            'total_amount' => 699.99,
-            'status' => 'pending',
-        ]);
+        // Order::create([
+        //     'user_id' => 1, // Assuming the first user is Test User
+        //     'total_amount' => 699.99,
+        //     'status' => 'pending',
+        // ]);
 
-        OrderItem::create([
-            'order_id' => 1, // Assuming the first order
-            'product_id' => 2, // Assuming the first product is Smartphone
-            'quantity' => 1,
-            'price' => 699.99,
-        ]);
-        OrderItem::create([
-            'order_id' => 1, // Assuming the first order
-            'product_id' => 3, // Assuming the first product is Smartphone
-            'quantity' => 2,
-            'price' => 699.99,
-        ]); 
+        // OrderItem::create([
+        //     'order_id' => 1, // Assuming the first order
+        //     'product_id' => 2, // Assuming the first product is Smartphone
+        //     'quantity' => 1,
+        //     'price' => 699.99,
+        // ]);
+        // OrderItem::create([
+        //     'order_id' => 1, // Assuming the first order
+        //     'product_id' => 3, // Assuming the first product is Smartphone
+        //     'quantity' => 2,
+        //     'price' => 699.99,
+        // ]); 
     }
 }

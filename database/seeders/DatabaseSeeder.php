@@ -22,12 +22,12 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        // User::create([
-        //     'name' => 'Test User',
-        //     'email' => 'testing@example.com',
-        //     'password' => Hash::make('password'),
-        //     'role' => 'admin', 
-        // ]);
+        User::create([
+            'name' => 'Test User',
+            'email' => 'testingRoleg@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin', 
+        ]);
         // Wallet::create([
         //     'user_id' => 1,
         //     'balance' => 1000,

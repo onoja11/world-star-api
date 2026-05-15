@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\AdminOrderAlert;
+use App\Mail\UserOrderReceipt;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -13,7 +15,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Coupon; 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Http; 
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -159,6 +162,14 @@ class OrderController extends Controller
             $user->save();  
 
             DB::commit();
+
+            Mail::to($user->email)->send(new UserOrderReceipt($order));
+
+            // 2. Dispatch Alert to All Admins
+            $admins = User::where('role', 'admin')->get();
+            if ($admins->count() > 0) {
+                Mail::to($admins)->send(new AdminOrderAlert($order));
+            }
 
             return response()->json([
                 'message' => 'Order placed successfully',

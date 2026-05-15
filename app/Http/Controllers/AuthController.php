@@ -6,24 +6,32 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail; // [!] ADD THIS
+use App\Mail\WelcomeEmail;           // [!] ADD THIS
+use App\Mail\LoginNotification;      // [!] ADD THIS
 
 class AuthController extends Controller
 {
-    //\
-    // Add your authentication methods here
     public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
+
         $user = User::where('email', $request->email)->first();
+
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
+
+        // DISPATCH LOGIN NOTIFICATION TO QUEUE
+        Mail::to($user->email)->send(new LoginNotification($user));
+
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json(['token' => $token, 'user' => $user]);
-        }   
+    }   
+
     public function register(Request $request)
     {
         $request->validate([
@@ -31,19 +39,26 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ]);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,         
             'password' => Hash::make($request->password),
         ]);
+
         Wallet::create([
             'user_id' => $user->id,
             'balance' => 0,
         ]);
+
+        // DISPATCH WELCOME EMAIL TO QUEUE
+        Mail::to($user->email)->send(new WelcomeEmail($user));
+
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json(['token' => $token, 'user' => $user]);
     }
-    public function logout(Request $request)
+    
+     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logout successful']);    
@@ -65,5 +80,4 @@ class AuthController extends Controller
         $user->save();
         return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
     }
-        
 }

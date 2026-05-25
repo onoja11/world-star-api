@@ -16,7 +16,8 @@ RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
     nodejs \
     npm \
-    && docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd
+    && docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd \
+    && apt-get clean && rm -rf /var/lib/lists/*
 
 # Install Composer from official image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -24,8 +25,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Copy all project files to container
 COPY . .
 
-# Create persistent SQLite database file in /var (Render allows persistence here)
-RUN mkdir -p /var && touch /var/database.sqlite
+# Create persistent SQLite database directory structure
+RUN mkdir -p /var/database && touch /var/database/database.sqlite
 
 # Install PHP dependencies (for production)
 RUN composer install --no-dev --optimize-autoloader
@@ -33,24 +34,19 @@ RUN composer install --no-dev --optimize-autoloader
 # Install Node dependencies and build assets only if a package.json exists
 RUN if [ -f package.json ]; then npm install && npm run build; fi
 
-# Set correct permissions for Laravel
-RUN chmod -R 755 storage bootstrap/cache database
+# Set correct storage ownership and permissions for Laravel (www-data user)
+RUN chown -R www-data:www-data /var/www /var/database \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Expose Laravel's default serve port
+# Expose the web application port
 EXPOSE 8000
 
-# Run migrations, optimize config, and start Laravel server
-CMD php artisan migrate --force && \
-    # php artisan config:cache && \
-    php artisan config:clear&& \
-    php artisan db:seed&& \
-    php artisan cache:clear&& \
-    php artisan config:cache&& \
-    php artisan storage:link && \
+# Run optimization pipelines, execute structural migrations, and boot up
+CMD php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
-    php artisan serve --host=0.0.0.0 --port=8000
-
-
-
-
+    php artisan storage:link --force && \
+    php artisan migrate --force && \
+    exec php artisan serve --host=0.0.0.0 --port=8000

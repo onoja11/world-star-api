@@ -89,7 +89,6 @@ class OrderController extends Controller
             $expectedTotal = $subtotal - $discountAmount;
 
             // 5. Verify Paystack
-            // Using config() is safer than env() in production
             $secretKey = config('services.paystack.secret') ?? env('PAYSTACK_SECRET_KEY');
 
             $response = Http::timeout(15)
@@ -147,7 +146,6 @@ class OrderController extends Controller
             }
 
             // 8. Record Transaction
-            // Note: We explicitly pass null for wallet_id because this is a card payment.
             Transaction::create([
                 'user_id' => $user->id,
                 'order_id' => $order->id,
@@ -165,10 +163,10 @@ class OrderController extends Controller
 
             // Mail::to($user->email)->send(new UserOrderReceipt($order));
 
-            // 2. Dispatch Alert to All Admins
-            $admins = User::where('role', 'admin')->get();
-            if ($admins->count() > 0) {
-                Mail::to($admins)->send(new AdminOrderAlert($order));
+            // [!] EDITED: Dispatch Alert to ONLY ONE primary admin instead of a full collection loop
+            $primaryAdmin = User::where('role', 'admin')->first();
+            if ($primaryAdmin) {
+                Mail::to($primaryAdmin->email)->send(new AdminOrderAlert($order));
             }
 
             return response()->json([
@@ -178,7 +176,6 @@ class OrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            // Log the error so you can see it in storage/logs/laravel.log
             \Illuminate\Support\Facades\Log::error("Order Error: " . $e->getMessage());
             return response()->json(['message' => 'Order creation failed', 'error' => $e->getMessage()], 500);
         }

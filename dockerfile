@@ -1,4 +1,4 @@
-# Use official PHP 8.2 FPM image
+# Use official PHP 8.2 FPM 
 FROM php:8.4-fpm
 
 # Set working directory

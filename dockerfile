@@ -42,11 +42,6 @@ RUN chown -R www-data:www-data /var/www /var/database \
 EXPOSE 8000
 
 # Run optimization pipelines, execute structural migrations, and boot up
-CMD php artisan config:clear && \
-    php artisan cache:clear && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
+CMD php artisan config:cache && \
     php artisan storage:link --force && \
-    php artisan migrate --force && \
     exec php artisan serve --host=0.0.0.0 --port=8000

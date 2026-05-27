@@ -163,7 +163,7 @@ class OrderController extends Controller
 
             DB::commit();
 
-            Mail::to($user->email)->send(new UserOrderReceipt($order));
+            // Mail::to($user->email)->send(new UserOrderReceipt($order));
 
             // 2. Dispatch Alert to All Admins
             $admins = User::where('role', 'admin')->get();

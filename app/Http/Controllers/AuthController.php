@@ -26,7 +26,7 @@ class AuthController extends Controller
         }
 
         // DISPATCH LOGIN NOTIFICATION TO QUEUE
-        Mail::to($user->email)->send(new LoginNotification($user));
+        // Mail::to($user->email)->send(new LoginNotification($user));
 
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json(['token' => $token, 'user' => $user]);
@@ -52,7 +52,7 @@ class AuthController extends Controller
         ]);
 
         // DISPATCH WELCOME EMAIL TO QUEUE
-        Mail::to($user->email)->send(new WelcomeEmail($user));
+        // Mail::to($user->email)->send(new WelcomeEmail($user));
 
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json(['token' => $token, 'user' => $user]);

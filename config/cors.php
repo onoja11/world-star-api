@@ -19,8 +19,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // 'allowed_origins' => ['http://localhost:3000'],
-    'allowed_origins' => ['https://world-star-ten.vercel.app'],
+    'allowed_origins' => ['http://localhost:3000'],
+    // 'allowed_origins' => ['https://world-star-ten.vercel.app'],
 
     'allowed_origins_patterns' => [],
 

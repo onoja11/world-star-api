@@ -17,6 +17,7 @@ use App\Models\Coupon;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -43,7 +44,6 @@ class OrderController extends Controller
         if (!$paymentReference) {
             return response()->json(['message' => 'No payment reference provided'], 400);
         }
-        // Validate User Info
         if (!$userInfo || empty($userInfo['address']) || empty($userInfo['full_name'])) {
              return response()->json(['message' => 'Shipping address is incomplete'], 400);
         }
@@ -88,26 +88,36 @@ class OrderController extends Controller
             }
             $expectedTotal = $subtotal - $discountAmount;
 
-            // 5. Verify Paystack
-            $secretKey = config('services.paystack.secret') ?? env('PAYSTACK_SECRET_KEY');
+            // 5. Verify Paystack (Bypasses config cache on Render safely)
+            $secretKey = env('PAYSTACK_SECRET_KEY') ?? config('services.paystack.secret');
 
-            $response = Http::timeout(15)
+            $response = Http::timeout(20)
                 ->withHeaders([
                     'Authorization' => 'Bearer ' . $secretKey,
                     'Cache-Control' => 'no-cache',
+                    'Accept'        => 'application/json',
                 ])
-                ->get("https://api.paystack.co/transaction/verify/" . $paymentReference);
+                ->get("https://api.paystack.co/transaction/verify/" . urlencode($paymentReference));
             
+            if ($response->failed()) {
+                // Critical Render Debug log point
+                Log::error("Render Paystack Rejection: Status " . $response->status() . " | Body: " . $response->body() . " | Ref: " . $paymentReference);
+                DB::rollBack();
+                return response()->json(['message' => 'Payment gateway verification handshake failed'], 400);
+            }
+
             $result = $response->json();
 
-            if (!$result['status'] || $result['data']['status'] !== 'success') {
+            if (!isset($result['status']) || !$result['status'] || $result['data']['status'] !== 'success') {
+                Log::error("Paystack Transaction Unsuccessful: " . json_encode($result));
                 DB::rollBack();
-                return response()->json(['message' => 'Payment verification failed'], 400);
+                return response()->json(['message' => 'Transaction was not marked successful by gateway'], 400);
             }
 
             $paidAmount = $result['data']['amount'] / 100;
 
             if ($paidAmount < $expectedTotal) {
+                 Log::error("Payment Mismatch: Expected {$expectedTotal}, Received {$paidAmount}");
                  DB::rollBack();
                  return response()->json(['message' => 'Payment mismatch. Expected: ' . $expectedTotal . ', Paid: ' . $paidAmount], 400);
             }
@@ -161,9 +171,7 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // Mail::to($user->email)->send(new UserOrderReceipt($order));
-
-            // [!] EDITED: Dispatch Alert to ONLY ONE primary admin instead of a full collection loop
+            // 9. Dispatch Alert to ONLY ONE primary admin
             $primaryAdmin = User::where('role', 'admin')->first();
             if ($primaryAdmin) {
                 Mail::to($primaryAdmin->email)->send(new AdminOrderAlert($order));
@@ -176,8 +184,8 @@ class OrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Illuminate\Support\Facades\Log::error("Order Error: " . $e->getMessage());
-            return response()->json(['message' => 'Order creation failed', 'error' => $e->getMessage()], 500);
+            Log::critical("Render Global Checkout Exception Raised: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+            return response()->json(['message' => 'Order processing failed internally', 'error' => $e->getMessage()], 500);
         }
     }
 

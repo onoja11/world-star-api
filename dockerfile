@@ -43,5 +43,6 @@ EXPOSE 8000
 
 # Run optimization pipelines, execute structural migrations, and boot up
 CMD php artisan config:cache && \
+    php artisan migrate:force && \
     php artisan storage:link --force && \
     exec php artisan serve --host=0.0.0.0 --port=8000

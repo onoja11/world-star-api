@@ -41,8 +41,8 @@ RUN chown -R www-data:www-data /var/www /var/database \
 # Expose the web application port
 EXPOSE 8000
 
-# Run optimization pipelines, execute structural migrations, and boot up
+# Run optimization pipelines, execute migrations, and boot up the server
 CMD php artisan config:cache && \
-    php artisan migrate:force && \
+    php artisan migrate --force && \
     php artisan storage:link --force && \
     exec php artisan serve --host=0.0.0.0 --port=8000

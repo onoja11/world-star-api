@@ -1,13 +1,13 @@
 @component('mail::layout')
-# [!] ACQUISITION_RECEIPT
+# Order Confirmation
 
-**Order_Ref:** #{{ $order->id }}  
-**Logistics_Target:** {{ $order->shipping_address }}
+**Order Number:** #{{ $order->id }}  
+**Delivery Address:** {{ $order->shipping_address }}
 
-Your order has been validated and synced with our fulfillment archive.
+Your payment has been successfully processed and your order is now being prepared for shipping.
 
 @component('mail::table')
-| Item | Quant | Price |
+| Item | Qty | Price |
 | :--- | :---: | :--- |
 @foreach($order->items as $item)
 | {{ $item->product->name }} | {{ $item->quantity }} | ₦{{ number_format($item->price) }} |
@@ -15,12 +15,12 @@ Your order has been validated and synced with our fulfillment archive.
 @endcomponent
 
 **Subtotal:** ₦{{ number_format($order->total_amount + $order->discount_amount) }}  
-**Reduction:** -₦{{ number_format($order->discount_amount) }}  
-**Total_Settled:** ₦{{ number_format($order->total_amount) }}
+**Discount Applied:** -₦{{ number_format($order->discount_amount) }}  
+**Total Paid:** ₦{{ number_format($order->total_amount) }}
 
 @component('mail::button', ['url' => config('app.url') . '/profile'])
-VIEW_ACQUISITION_LOGS
+View Order History
 @endcomponent
 
-© {{ date('Y') }} WORLD STAR. EST_MMXXVI
+© {{ date('Y') }} World Star. All rights reserved.
 @endcomponent

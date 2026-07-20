@@ -1,18 +1,18 @@
 @component('mail::layout')
-# [!] NEW_ORDER_INBOUND
+# New Order Received
 
-**Entity:** {{ $order->user->name }} ({{ $order->user->email }})  
-**Order_ID:** #{{ $order->id }}  
-**Revenue:** ₦{{ number_format($order->total_amount) }}
+**Customer:** {{ $order->user->name }} ({{ $order->user->email }})  
+**Order Number:** #{{ $order->id }}  
+**Total Amount:** ₦{{ number_format($order->total_amount) }}
 
-**Items_to_Process:**
+**Items to Fulfill:**
 @foreach($order->items as $item)
-* {{ $item->product->name }} [x{{ $item->quantity }}]
+* {{ $item->product->name }} (Quantity: {{ $item->quantity }})
 @endforeach
 
 @component('mail::button', ['url' => config('app.url') . '/admin/orders/view/' . $order->id])
-INITIALIZE_FULFILLMENT
+View Order Details
 @endcomponent
 
-SYSTEM_MMXXVI // INBOUND_LOG_v2.5
+World Star Store // Order Notification
 @endcomponent
